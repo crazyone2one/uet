@@ -18,5 +18,12 @@ public interface ResolveExcelService {
      */
     List<CaseEntity> resolveExcel(MultipartFile file);
 
+    /**
+     * 上传case
+     *
+     * @param caseEntityList
+     * @return java.lang.String
+     */
+
     String uploadCases(List<CaseEntity> caseEntityList);
 }

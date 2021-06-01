@@ -13,7 +13,6 @@ import cn.master.uet.entity.CaseEntity;
 import cn.master.uet.service.ResolveExcelService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -23,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author by 11's papa on 2021年05月28日
@@ -79,54 +75,29 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
 
     private CaseEntity caseEntity(Row row) {
         CaseEntity caseEntity = new CaseEntity();
-        if (row.getCell(0) != null) {
+        if (Objects.nonNull(row.getCell(0))) {
             caseEntity.setProjectName(row.getCell(0).getStringCellValue());
         }
-        if (row.getCell(1) != null) {
-            caseEntity.setTestPlan(row.getCell(1).getStringCellValue());
-        } else {
-            caseEntity.setTestPlan("");
+        if (Objects.nonNull(row.getCell(1))) {
+            caseEntity.setSuiteName(row.getCell(1).getStringCellValue());
         }
-        if (row.getCell(2) != null) {
-            caseEntity.setVersionName(row.getCell(2).getStringCellValue());
-        } else {
-            caseEntity.setVersionName("");
+        if (Objects.nonNull(row.getCell(2))) {
+            caseEntity.setCaseTitle(row.getCell(2).getStringCellValue());
         }
-        if (row.getCell(3) != null) {
-            caseEntity.setSuiteName(row.getCell(3).getStringCellValue());
+        if (Objects.nonNull(row.getCell(3))) {
+            caseEntity.setSummery(row.getCell(3).getStringCellValue());
         }
-        if (row.getCell(4) != null) {
-            caseEntity.setFunctionDesc(row.getCell(4).getStringCellValue());
+        if (Objects.nonNull(row.getCell(4))) {
+            caseEntity.setPreconditions(row.getCell(4).getStringCellValue());
         }
-        if (row.getCell(5) != null) {
-            caseEntity.setCaseNo(row.getCell(5).getStringCellValue());
+        if (Objects.nonNull(row.getCell(5))) {
+            caseEntity.setCaseDetail(row.getCell(5).getStringCellValue());
         }
-        if (row.getCell(6) != null) {
-            caseEntity.setCaseTitle(row.getCell(6).getStringCellValue());
+        if (Objects.nonNull(row.getCell(6))) {
+            caseEntity.setExpectResult(row.getCell(6).getStringCellValue());
         }
-        if (row.getCell(7) != null) {
-            caseEntity.setSummery(row.getCell(7).getStringCellValue());
-        }
-        if (row.getCell(8) != null) {
-            caseEntity.setPreconditions(row.getCell(8).getStringCellValue());
-        }
-        if (row.getCell(9) != null) {
-            caseEntity.setCaseDetail(row.getCell(9).getStringCellValue());
-        }
-        if (row.getCell(10) != null) {
-            caseEntity.setExpectResult(row.getCell(10).getStringCellValue());
-        }
-        if (row.getCell(11) != null) {
-            caseEntity.setPriority(String.valueOf((int) row.getCell(11).getNumericCellValue()));
-        }
-        if (row.getCell(12) != null) {
-            caseEntity.setExecutionType(String.valueOf((int) row.getCell(12).getNumericCellValue()));
-        }
-        if (row.getCell(13) != null) {
-            caseEntity.setDesigner(row.getCell(13).getStringCellValue());
-        }
-        if (row.getCell(14) != null) {
-            caseEntity.setExecutor(row.getCell(14).getStringCellValue());
+        if (Objects.nonNull(row.getCell(7))) {
+            caseEntity.setImported(row.getCell(7).getBooleanCellValue());
         }
         log.info("解析到一条数据:========================\n" + caseEntity);
         return caseEntity;
@@ -138,6 +109,9 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
             return "未解析到数据";
         }
         for (CaseEntity entity : caseEntityList) {
+            if (Objects.equals(true, entity.getImported())) {
+                continue;
+            }
             List<TestCaseStep> steps = new ArrayList<>();
             String[] caseSteps = entity.getCaseDetail().split("\\r?\\n");
             String[] caseExcept = entity.getExpectResult().split("\\r?\\n");
@@ -154,20 +128,14 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                 log.warn("");
                 continue;
             }
-
             Integer projectId = checkProject(entity.getProjectName());
-            String summery = entity.getSummery();
-            if (StringUtils.isBlank(summery)) {
-                summery = entity.getFunctionDesc();
-            }
-            String suiteId = checkSuite(projectId, entity.getSuiteName());
             // create case
             log.info("开始存储到数据库");
             apiConfig.api().createTestCase(entity.getCaseTitle(),
-                    Integer.valueOf(suiteId),
+                    checkSuite(projectId, entity.getSuiteName()),
                     projectId,
-                    entity.getDesigner(),
-                    summery,
+                    "admin",
+                    entity.getSummery(),
                     steps,
                     null,
                     TestCaseStatus.DRAFT,
@@ -206,25 +174,25 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
      * @param suiteName suite name
      * @return java.lang.String
      */
-    private String checkSuite(Integer projectId, String suiteName) {
-        String suiteId = null;
+    private Integer checkSuite(Integer projectId, String suiteName) {
+        Integer suiteId = null;
         try {
             TestSuite[] first = apiConfig.api().getFirstLevelTestSuitesForTestProject(projectId);
             if (CollectionUtils.isNotEmpty(Arrays.asList(first))) {
                 for (TestSuite testSuite : first) {
                     if (testSuite.getName().equals(suiteName)) {
-                        suiteId = testSuite.getId().toString();
+                        suiteId = testSuite.getId();
                         break;
                     } else {
                         TestSuite ts = apiConfig.api().createTestSuite(projectId, suiteName, "", null, null, true, ActionOnDuplicate.BLOCK);
-                        suiteId = ts.getId().toString();
+                        suiteId = ts.getId();
                     }
                 }
             }
         } catch (TestLinkAPIException e) {
             e.printStackTrace(System.err);
             TestSuite testSuite1 = apiConfig.api().createTestSuite(projectId, suiteName, "", null, null, true, ActionOnDuplicate.BLOCK);
-            suiteId = testSuite1.getId().toString();
+            suiteId = testSuite1.getId();
         }
         return suiteId;
     }
