@@ -11,6 +11,7 @@ import br.eti.kinoshita.testlinkjavaapi.util.TestLinkAPIException;
 import cn.master.uet.commom.TestLinkApiConfig;
 import cn.master.uet.entity.CaseEntity;
 import cn.master.uet.service.ResolveExcelService;
+import cn.master.uet.util.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -137,7 +138,7 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                     "admin",
                     entity.getSummery(),
                     steps,
-                    null,
+                    entity.getPreconditions(),
                     TestCaseStatus.DRAFT,
                     TestImportance.MEDIUM, ExecutionType.MANUAL,
                     10, null, null, null
@@ -163,7 +164,7 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
         } catch (TestLinkAPIException exception) {
             exception.printStackTrace();
         }
-        return apiConfig.api().createTestProject(projectName, "tc1", null, false,
+        return apiConfig.api().createTestProject(projectName, CommonUtils.randomCode(4), null, false,
                 true, true, false, true, true).getId();
     }
 
@@ -178,16 +179,15 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
         Integer suiteId = null;
         try {
             TestSuite[] first = apiConfig.api().getFirstLevelTestSuitesForTestProject(projectId);
-            if (CollectionUtils.isNotEmpty(Arrays.asList(first))) {
-                for (TestSuite testSuite : first) {
-                    if (testSuite.getName().equals(suiteName)) {
-                        suiteId = testSuite.getId();
-                        break;
-                    } else {
-                        TestSuite ts = apiConfig.api().createTestSuite(projectId, suiteName, "", null, null, true, ActionOnDuplicate.BLOCK);
-                        suiteId = ts.getId();
-                    }
+            for (TestSuite testSuite : first) {
+                if (testSuite.getName().equals(suiteName)) {
+                    suiteId = testSuite.getId();
+                    break;
                 }
+            }
+            if (Objects.isNull(suiteId)) {
+                TestSuite testSuite1 = apiConfig.api().createTestSuite(projectId, suiteName, "", null, null, true, ActionOnDuplicate.BLOCK);
+                suiteId = testSuite1.getId();
             }
         } catch (TestLinkAPIException e) {
             e.printStackTrace(System.err);
