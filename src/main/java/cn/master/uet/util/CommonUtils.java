@@ -1,5 +1,7 @@
 package cn.master.uet.util;
 
+import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -24,4 +26,20 @@ public class CommonUtils {
         return stringBuilder.toString();
     }
 
+    public static boolean checkObjectField(Object object) {
+        if (Objects.isNull(object)) {
+            return true;
+        }
+        try {
+            for (Field field : object.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                if (Objects.nonNull(field.get(object))) {
+                    return false;
+                }
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
 }

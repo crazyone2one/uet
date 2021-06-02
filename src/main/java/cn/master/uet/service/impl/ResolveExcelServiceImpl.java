@@ -68,6 +68,10 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
             for (int i = 1; i <= lastRowNum; i++) {
                 Row row = sheet.getRow(i);
                 CaseEntity caseEntity = caseEntity(row);
+                // 过滤空白行
+                if (CommonUtils.checkObjectField(caseEntity)) {
+                    continue;
+                }
                 caseEntityList.add(caseEntity);
             }
         }
