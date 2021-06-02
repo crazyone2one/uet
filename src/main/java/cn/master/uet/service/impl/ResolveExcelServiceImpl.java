@@ -43,7 +43,7 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
     public List<CaseEntity> resolveExcel(MultipartFile file) {
         List<CaseEntity> caseEntityList = new LinkedList<>();
         if (file.isEmpty()) {
-            log.error("");
+            log.error("文件内容为空");
             return caseEntityList;
         }
         // 获取文件的名字
@@ -59,12 +59,13 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (workbook == null) {
-            log.error("");
+        if (Objects.isNull(workbook)) {
+            log.error("获取excel文件失败");
             return caseEntityList;
         } else {
             Sheet sheet = workbook.getSheetAt(0);
             int lastRowNum = sheet.getLastRowNum();
+            // 第一行为表头信息，跳过
             for (int i = 1; i <= lastRowNum; i++) {
                 Row row = sheet.getRow(i);
                 CaseEntity caseEntity = caseEntity(row);
@@ -80,30 +81,22 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
 
     private CaseEntity caseEntity(Row row) {
         CaseEntity caseEntity = new CaseEntity();
-        if (Objects.nonNull(row.getCell(0))) {
-            caseEntity.setProjectName(row.getCell(0).getStringCellValue());
-        }
-        if (Objects.nonNull(row.getCell(1))) {
-            caseEntity.setSuiteName(row.getCell(1).getStringCellValue());
-        }
-        if (Objects.nonNull(row.getCell(2))) {
-            caseEntity.setCaseTitle(row.getCell(2).getStringCellValue());
-        }
+        caseEntity.setProjectName(row.getCell(0).getStringCellValue());
+        caseEntity.setSuiteName(row.getCell(1).getStringCellValue());
+        caseEntity.setCaseTitle(row.getCell(2).getStringCellValue());
         if (Objects.nonNull(row.getCell(3))) {
             caseEntity.setSummery(row.getCell(3).getStringCellValue());
+        } else {
+            caseEntity.setSummery("");
         }
         if (Objects.nonNull(row.getCell(4))) {
             caseEntity.setPreconditions(row.getCell(4).getStringCellValue());
+        } else {
+            caseEntity.setPreconditions("");
         }
-        if (Objects.nonNull(row.getCell(5))) {
-            caseEntity.setCaseDetail(row.getCell(5).getStringCellValue());
-        }
-        if (Objects.nonNull(row.getCell(6))) {
-            caseEntity.setExpectResult(row.getCell(6).getStringCellValue());
-        }
-        if (Objects.nonNull(row.getCell(7))) {
-            caseEntity.setImported(row.getCell(7).getBooleanCellValue());
-        }
+        caseEntity.setCaseDetail(row.getCell(5).getStringCellValue());
+        caseEntity.setExpectResult(row.getCell(6).getStringCellValue());
+        caseEntity.setImported(row.getCell(7).getBooleanCellValue());
         log.info("解析到一条数据:========================\n" + caseEntity);
         return caseEntity;
     }
@@ -130,7 +123,7 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                     steps.add(step);
                 }
             } else {
-                log.warn("");
+                log.warn("测试步骤和期望结果不匹配");
                 continue;
             }
             Integer projectId = checkProject(entity.getProjectName());
