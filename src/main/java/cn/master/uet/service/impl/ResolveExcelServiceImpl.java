@@ -131,18 +131,23 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
             }
             Integer projectId = checkProject(entity.getProjectName());
             // create case
-            log.info("开始存储到数据库");
-            apiConfig.api().createTestCase(entity.getCaseTitle(),
-                    checkSuite(projectId, entity.getSuiteName()),
-                    projectId,
-                    "admin",
-                    entity.getSummery(),
-                    steps,
-                    entity.getPreconditions(),
-                    TestCaseStatus.DRAFT,
-                    TestImportance.MEDIUM, ExecutionType.MANUAL,
-                    10, null, null, null
-            );
+            try {
+                log.info("开始存储到数据库");
+                apiConfig.api().createTestCase(entity.getCaseTitle(),
+                        checkSuite(projectId, entity.getSuiteName()),
+                        projectId,
+                        "admin",
+                        entity.getSummery(),
+                        steps,
+                        entity.getPreconditions(),
+                        TestCaseStatus.DRAFT,
+                        TestImportance.MEDIUM, ExecutionType.MANUAL,
+                        10, null, null, null
+                );
+            } catch (TestLinkAPIException exception) {
+                log.error(exception.getCause().getMessage());
+                return "测试用例创建失败";
+            }
         }
         return "上传成功";
     }
