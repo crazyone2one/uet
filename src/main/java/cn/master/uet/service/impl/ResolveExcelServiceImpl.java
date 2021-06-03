@@ -127,7 +127,8 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                     steps.add(step);
                 }
             } else {
-                log.warn("测试步骤和期望结果不匹配");
+                log.warn("测试步骤和期望结果数量不匹配");
+                failed += 1;
                 continue;
             }
             Integer projectId = checkProject(entity.getProjectName());
@@ -148,11 +149,11 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                 imported1 += 1;
             } catch (TestLinkAPIException exception) {
                 failed += 1;
-                log.error("测试用例创建失败:" + exception.getCause().getMessage());
+                log.error("测试用例创建失败:" + exception.getMessage());
+                continue;
             }
         }
-        return "共解析到" + caseEntityList.size() + "条测试用例: " + imported + "条已导入." +
-                "\n本次成功导入" + imported1 + "条,导入失败" + failed + "条";
+        return "共解析到" + caseEntityList.size() + "条测试用例: " + imported + "条已导入.本次成功导入" + imported1 + "条,导入失败" + failed + "条";
     }
 
     /**
