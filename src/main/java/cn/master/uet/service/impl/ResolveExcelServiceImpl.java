@@ -103,11 +103,14 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
 
     @Override
     public String uploadCases(List<CaseEntity> caseEntityList) {
+        int imported = 0;
+        int imported1 = 0;
         if (CollectionUtils.isEmpty(caseEntityList)) {
             return "未解析到数据";
         }
         for (CaseEntity entity : caseEntityList) {
             if (Objects.equals(true, entity.getImported())) {
+                imported += 1;
                 continue;
             }
             List<TestCaseStep> steps = new ArrayList<>();
@@ -141,12 +144,13 @@ public class ResolveExcelServiceImpl implements ResolveExcelService {
                         TestImportance.MEDIUM, ExecutionType.MANUAL,
                         10, null, null, null
                 );
+                imported1 += 1;
             } catch (TestLinkAPIException exception) {
                 log.error(exception.getCause().getMessage());
                 return "测试用例创建失败";
             }
         }
-        return "上传成功";
+        return "共解析到" + caseEntityList.size() + "条测试用例." + imported + "条已导入.本次导入" + imported1 + "条";
     }
 
     /**

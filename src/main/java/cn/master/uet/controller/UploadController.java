@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,13 +30,20 @@ public class UploadController {
         return "upload";
     }
 
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    @ResponseBody
-    public String fileUpload(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/upload")
+    public String fileUpload(@RequestParam("file") MultipartFile file, Model model) {
         if (file.isEmpty()) {
-            return "文件不能为空";
+            model.addAttribute("message", "The file is empty!");
+            return "/uploadStatus";
         }
-        return resolveExcelService.uploadCases(resolveExcelService.resolveExcel(file));
+        String uploadResult = resolveExcelService.uploadCases(resolveExcelService.resolveExcel(file));
+        model.addAttribute("message", uploadResult);
+        return "/uploadStatus";
+    }
+
+    @GetMapping("/uploadStatus")
+    public String uploadStatus() {
+        return "uploadStatus";
     }
 
     @RequestMapping(value = "/downloadTemplate", method = RequestMethod.GET)
