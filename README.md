@@ -4,15 +4,17 @@
 
 ## Getting Started
 
-### Prerequisites
+### 依赖环境
 
 * java 1.8+
 * maven
 * git
 
-### Installation
+### 配置
 
-* 创建api key
+* 登录testlink系统，创建Personal API access key
+
+* ![image-20210621145029900](C:\Users\jingll\AppData\Roaming\Typora\typora-user-images\image-20210621145029900.png)
 
 * clone the repo
 
@@ -33,27 +35,27 @@
   testlink.key=cc858594b55ab99efce47d4cc39d1c37
   ~~~
 
-## Usage
+## 使用
 
-* 编译项目
+* 编译打包项目
 
-  ~~~bash
-  mvn clean
-  ~~~
-
-* 打包项目
-
-  ~~~bash
-  mvn package
+  ~~~maven
+  mvn clean package
   ~~~
 
 * 运行项目
 
-  ~~~bash
+  ~~~maven
   java -jar xx.jar
   ~~~
 
-  
+* 使用docker运行
+
+ > mvn clean package
+ >
+ > docker build -t [镜像名称] .
+ >
+ > docker run -d --name [容器名称] -p 8088:8088 [镜像名称]
 
 ## Contributing
 
