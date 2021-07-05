@@ -3,7 +3,7 @@
 本项目可实现将写在excel中的测试用例数据导入到testlink系统中。
 
 ## Getting Started
-https://img.shields.io/github/v/release/crazyone2one/uet?style=plastic
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/crazyone2one/uet?style=plastic)
 
 ### 依赖环境
 
